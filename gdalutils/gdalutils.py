@@ -49,7 +49,7 @@ def get_geo(filename):
     geo  = [xmin,ymin,xmax,ymax,nx,ny,resx,resy,x,y,srs]
     return geo
 
-def write_Raster(myarray,myraster,geo,fmt,nodata):
+def write_raster(myarray,myraster,geo,fmt,nodata):
 
     """ Write an array to Raster format defaul in GTiff format"""
 
