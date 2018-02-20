@@ -12,7 +12,7 @@ def get_dataxy(filename,x,y,nx,ny):
     
     ds   = gdal.Open(filename, gdal.GA_ReadOnly)
     band = ds.GetRasterBand(1)
-    data = np.float64(band.ReadAsArray(x,y,nx,ny))
+    data = np.float64(band.ReadAsArray(int(x),int(y),nx,ny))
     ds   = None
     return data
 
@@ -78,8 +78,8 @@ def write_raster(myarray,myraster,geo,fmt,nodata):
     srs  = geo[10]
 
     driver = gdal.GetDriverByName('GTiff')
-    
-    outRaster = driver.Create(myraster, nx, ny, 1, ofmt, ['COMPRESS=LZW'])
+
+    outRaster = driver.Create(myraster, int(nx), int(ny), 1, ofmt, ['COMPRESS=LZW'])
     outRaster.SetGeoTransform((xmin, resx, 0, ymax, 0, resy))
     outRaster.SetProjection(srs.ExportToWkt())
     
