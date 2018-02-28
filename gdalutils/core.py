@@ -3,6 +3,7 @@
 # mail: j.sosa@bristol.ac.uk / sosa.jeison@gmail.com
 
 import numpy as np
+import xarray as xr
 from osgeo import gdal
 from osgeo import osr
 
@@ -31,6 +32,8 @@ def get_geo(filename):
     """ Read geo info from raster file """
 
     ds   = gdal.Open(filename, gdal.GA_ReadOnly)
+    bnd  = ds.GetRasterBand(1)
+    noda = np.float64(bnd.GetNoDataValue())
     gt   = ds.GetGeoTransform()
     nx   = np.int64(ds.RasterXSize)
     ny   = np.int64(ds.RasterYSize)
@@ -46,7 +49,7 @@ def get_geo(filename):
     wkt  = ds.GetProjectionRef()
     srs.ImportFromWkt(wkt)
     ds   = None
-    geo  = [xmin,ymin,xmax,ymax,nx,ny,resx,resy,x,y,srs]
+    geo  = [xmin,ymin,xmax,ymax,nx,ny,resx,resy,x,y,srs,noda]
     return geo
 
 def write_raster(myarray,myraster,geo,fmt,nodata):
@@ -128,3 +131,23 @@ def clip_raster(fraster,xmin,ymin,xmax,ymax):
     newgeo = [xmin,ymin,xmax,ymax,nx,ny,resx,resy,x,y,srs]
 
     return newras,newgeo
+
+def to_xarray(filename):
+
+    dat = get_data(filename)
+    geo = get_geo(filename)
+
+    # Replace NaN values
+    dat[dat==geo[11]] = np.nan
+
+    var = 'myvar' 
+    data = dat
+    x = geo[8]
+    y = geo[9]
+    
+    foo = xr.Dataset()
+    foo[var] = (('y','x'), data)
+    foo.coords['x'] = (('x'), x)
+    foo.coords['y'] = (('y'), y)
+    
+    return foo
