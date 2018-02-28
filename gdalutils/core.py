@@ -4,8 +4,10 @@
 
 import numpy as np
 import xarray as xr
+import matplotlib.pyplot as plt
 from osgeo import gdal
 from osgeo import osr
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def get_dataxy(filename,x,y,nx,ny):
 
@@ -151,3 +153,29 @@ def to_xarray(filename):
     foo.coords['y'] = (('y'), y)
     
     return foo
+
+def plot(filename,width=5,height=5,dpi=72,title=None):
+
+    dat = get_data(filename)
+    geo = get_geo(filename)
+
+    dat[dat==geo[11]]=np.nan
+
+    fig, ax = plt.subplots(figsize=(width,height), dpi=dpi)
+    myplot=ax.imshow(dat, interpolation='none')
+    
+    if title is not None:
+        plt.title(title)
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="3.5%", pad=0.1)
+    plt.colorbar(myplot, cax=cax)
+
+def save(filename,out,tile='no',width=5,height=5,dpi=72):
+
+    plot(filename,width=width,height=height,dpi=dpi)
+    if tile == 'yes':
+        plt.imsave(out, dat)
+    else:
+        plt.savefig(out, bbox_inches='tight')
+
