@@ -3,11 +3,8 @@
 # mail: j.sosa@bristol.ac.uk / sosa.jeison@gmail.com
 
 import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
 from osgeo import gdal
 from osgeo import osr
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def get_dataxy(filename,x,y,nx,ny):
 
@@ -136,6 +133,8 @@ def clip_raster(fraster,xmin,ymin,xmax,ymax):
 
 def to_xarray(filename):
 
+    import xarray as xr
+
     dat = get_data(filename)
     geo = get_geo(filename)
 
@@ -154,7 +153,38 @@ def to_xarray(filename):
     
     return foo
 
+def to_ascii(filename,output,nodata=None,sep=','):
+
+    import pandas as pd
+
+    dat = get_data(filename)
+    geo = get_geo(filename)
+
+    if nodata == None:
+        nodata = geo[11]
+        iy,ix = np.where(dat!=nodata)
+    else:
+        iy,ix = np.where(dat!=nodata)
+
+    idx = np.ravel_multi_index((iy,ix),dat.shape)
+    X_flat = geo[8][ix]
+    Y_flat = geo[9][iy]
+    dat_flat = dat.flatten()[idx]
+
+    df = pd.DataFrame({'x':X_flat,
+                       'y':Y_flat,
+                       'z':dat_flat})
+
+    if sep != ',':
+        df.to_csv(output,index=False,sep=sep)
+    else:
+        df.to_csv(output,index=False)
+    
+
 def plot(filename,width=5,height=5,dpi=72,title=None):
+
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     dat = get_data(filename)
     geo = get_geo(filename)
@@ -173,9 +203,12 @@ def plot(filename,width=5,height=5,dpi=72,title=None):
 
 def save(filename,out,tile='no',width=5,height=5,dpi=72):
 
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
     plot(filename,width=width,height=height,dpi=dpi)
     if tile == 'yes':
-        plt.imsave(out, dat)
+        plt.imsave(out, dat, dpi=dpi)
     else:
         plt.savefig(out, bbox_inches='tight')
 
