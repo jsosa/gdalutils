@@ -153,7 +153,7 @@ def to_xarray(filename):
     
     return foo
 
-def to_ascii(filename,output,nodata=None,sep=','):
+def to_pandas(filename,nodata=None):
 
     import pandas as pd
 
@@ -175,7 +175,13 @@ def to_ascii(filename,output,nodata=None,sep=','):
                        'y':Y_flat,
                        'z':dat_flat})
 
-    if sep != ',':
+    return df
+
+def to_ascii(filename,output,nodata=None,sep=None):
+
+    df = to_pandas(filename,nodata=nodata)
+
+    if sep != None:
         df.to_csv(output,index=False,sep=sep)
     else:
         df.to_csv(output,index=False)

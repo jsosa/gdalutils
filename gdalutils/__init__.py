@@ -4,4 +4,5 @@ from .core import get_geo
 from .core import clip_raster
 from .core import write_raster
 from .core import to_xarray
+from .core import to_pandas
 from .core import to_ascii
