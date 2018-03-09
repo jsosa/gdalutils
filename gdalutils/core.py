@@ -26,7 +26,7 @@ def get_data(filename):
     ds   = None
     return data
 
-def get_geo(filename):
+def get_geo(filename,proj4=None):
 
     """ Read geo info from raster file """
 
@@ -44,9 +44,14 @@ def get_geo(filename):
     ymax = np.float64(gt[3])
     x    = np.linspace(xmin+resx/2,xmin+resx/2+resx*(nx-1),nx)
     y    = np.linspace(ymax+resy/2,ymax+resy/2+resy*(ny-1),ny)
+
     srs  = osr.SpatialReference()
-    wkt  = ds.GetProjectionRef()
-    srs.ImportFromWkt(wkt)
+    if proj4 == None:
+        wkt  = ds.GetProjectionRef()
+        srs.ImportFromWkt(wkt)
+    else:
+        srs.ImportFromProj4(proj4)
+
     ds   = None
     geo  = [xmin,ymin,xmax,ymax,nx,ny,resx,resy,x,y,srs,noda]
     return geo
