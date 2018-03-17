@@ -2,6 +2,7 @@
 # auth: jeison sosa
 # mail: j.sosa@bristol.ac.uk / sosa.jeison@gmail.com
 
+from sys import exit
 import numpy as np
 from osgeo import gdal
 from osgeo import osr
@@ -158,18 +159,24 @@ def to_xarray(filename):
     
     return foo
 
-def to_pandas(filename,nodata=None):
+def array_to_pandas(dat,geo,val,symbol):
 
     import pandas as pd
 
-    dat = get_data(filename)
-    geo = get_geo(filename)
-
-    if nodata == None:
-        nodata = geo[11]
-        iy,ix = np.where(dat!=nodata)
+    if symbol == 'lt':
+        iy,ix = np.where(dat<val)
+    elif symbol == 'le':
+        iy,ix = np.where(dat<=val)
+    elif symbol == 'gt':
+        iy,ix = np.where(dat>val)
+    elif symbol == 'ge':
+        iy,ix = np.where(dat>=val)
+    elif symbol == 'eq':
+        iy,ix = np.where(dat==val)
+    elif symbol == 'ne':
+        iy,ix = np.where(dat!=val)
     else:
-        iy,ix = np.where(dat!=nodata)
+        exit('ERROR symbol not recognized')
 
     idx = np.ravel_multi_index((iy,ix),dat.shape)
     X_flat = geo[8][ix]
@@ -181,6 +188,13 @@ def to_pandas(filename,nodata=None):
                        'z':dat_flat})
 
     return df
+
+def file_to_pandas(filename,nodata=None):
+
+    dat = get_data(filename)
+    geo = get_geo(filename)
+
+    return array_to_pandas(dat,geo,0,'ne')
 
 def to_ascii(filename,output,nodata=None,sep=None):
 
