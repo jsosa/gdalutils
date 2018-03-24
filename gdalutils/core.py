@@ -6,6 +6,7 @@ from sys import exit
 import numpy as np
 from osgeo import gdal
 from osgeo import osr
+from gdalutils.extras.haversine import haversine_array
 
 def get_dataxy(filename,x,y,nx,ny):
 
@@ -88,13 +89,14 @@ def write_raster(myarray,myraster,geo,fmt,nodata):
     driver = gdal.GetDriverByName('GTiff')
 
     outRaster = driver.Create(myraster, int(nx), int(ny), 1, ofmt, ['COMPRESS=LZW'])
+
     outRaster.SetGeoTransform((xmin, resx, 0, ymax, 0, resy))
     outRaster.SetProjection(srs.ExportToWkt())
-    
     outband = outRaster.GetRasterBand(1)
+
     outband.WriteArray(myarray)
     outband.FlushCache()
-    outband.SetNoDataValue(nodata)
+    outband.SetNoDataValue(nodata)  
     
 def clip_raster(fraster,xmin,ymin,xmax,ymax):
 
@@ -188,6 +190,18 @@ def array_to_pandas(dat,geo,val,symbol):
                        'z':dat_flat})
 
     return df
+
+def pandas_to_array(df,geo,nodata):
+
+    newarray = np.ones((geo[5],geo[4])) * nodata
+    iy,ix    = np.where(newarray==nodata)
+    xx       = np.float32(geo[8][ix])
+    yy       = np.float32(geo[9][iy])
+    for x,y,z in zip(df['x'],df['y'],df['z']):
+        idx = np.argmin(haversine_array(xx,yy,np.float32(x),np.float32(y)))
+        newarray[iy[idx],ix[idx]] = z
+
+    return newarray
 
 def file_to_pandas(filename,nodata=None):
 
