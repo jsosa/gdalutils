@@ -134,8 +134,9 @@ def clip_raster(fraster,xmin,ymin,xmax,ymax):
     resx   = geo[6]
     resy   = geo[7]
     srs    = geo[10]
+    noda   = geo[11]
 
-    newgeo = [xmin,ymin,xmax,ymax,nx,ny,resx,resy,x,y,srs]
+    newgeo = [xmin,ymin,xmax,ymax,nx,ny,resx,resy,x,y,srs,noda]
 
     return newras,newgeo
 
