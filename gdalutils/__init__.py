@@ -7,4 +7,5 @@ from .core import to_xarray
 from .core import array_to_pandas
 from .core import pandas_to_array
 from .core import to_ascii
+from .core import shp2pandas
 from .extras import haversine

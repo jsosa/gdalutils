@@ -4,9 +4,11 @@
 
 from sys import exit
 import numpy as np
+import pandas as pd
 from osgeo import gdal
 from osgeo import osr
 from gdalutils.extras.haversine import haversine_array
+from gdalutils.extras import shapefile
 
 def get_dataxy(filename,x,y,nx,ny):
 
@@ -164,8 +166,6 @@ def to_xarray(filename):
 
 def array_to_pandas(dat,geo,val,symbol):
 
-    import pandas as pd
-
     if symbol == 'lt':
         iy,ix = np.where(dat<val)
     elif symbol == 'le':
@@ -252,3 +252,12 @@ def save(filename,out,tile='no',width=5,height=5,dpi=72):
     else:
         plt.savefig(out, bbox_inches='tight')
 
+def shp2pandas(shp):
+
+    shp  = shapefile.Reader(shp)
+    dat  = shp.records()
+    lst  = shp.fields[1:]
+    cols = [item[0] for item in lst]
+    df   = pd.DataFrame(dat,columns=cols,dtype=np.float)
+
+    return df
