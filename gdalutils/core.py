@@ -142,28 +142,6 @@ def clip_raster(fraster,xmin,ymin,xmax,ymax):
 
     return newras,newgeo
 
-def to_xarray(filename):
-
-    import xarray as xr
-
-    dat = get_data(filename)
-    geo = get_geo(filename)
-
-    # Replace NaN values
-    dat[dat==geo[11]] = np.nan
-
-    var = 'myvar' 
-    data = dat
-    x = geo[8]
-    y = geo[9]
-    
-    foo = xr.Dataset()
-    foo[var] = (('y','x'), data)
-    foo.coords['x'] = (('x'), x)
-    foo.coords['y'] = (('y'), y)
-    
-    return foo
-
 def array_to_pandas(dat,geo,val,symbol):
 
     if symbol == 'lt':
@@ -181,9 +159,9 @@ def array_to_pandas(dat,geo,val,symbol):
     else:
         exit('ERROR symbol not recognized')
 
-    idx = np.ravel_multi_index((iy,ix),dat.shape)
-    X_flat = geo[8][ix]
-    Y_flat = geo[9][iy]
+    idx      = np.ravel_multi_index((iy,ix),dat.shape)
+    X_flat   = geo[8][ix]
+    Y_flat   = geo[9][iy]
     dat_flat = dat.flatten()[idx]
 
     df = pd.DataFrame({'x':X_flat,
@@ -204,22 +182,67 @@ def pandas_to_array(df,geo,nodata):
 
     return newarray
 
-def file_to_pandas(filename,nodata=None):
+def pandas_to_shp(outf,proj,df,labl):
+
+    # Save df in shapefile
+    w = shapefile.Writer(shapefile.POINT)
+    w.field('x')
+    w.field('y')
+    w.field(labl)
+
+    # Writing .shp resulting file
+    for x,y,value in zip(df['x'],df['y'],df[labl]):
+        w.point(x,y)
+        w.record(x,y,value)
+    w.save("%s.shp" % outf)
+
+    # write .prj file
+    prj = open("%s.prj" % outf, "w")
+    srs = osr.SpatialReference()
+    srs.ImportFromProj4(proj)
+    prj.write(srs.ExportToWkt())
+    prj.close()
+
+def pandas_to_raster(netf,outf,df,labl,dtype):
+
+    nodata = -9999
+    geo    = get_geo(netf)
+    dat    = pandas_to_array(df,geo,nodata)
+
+    write_raster(dat,outf,geo,dtype,nodata)
+
+def raster_to_pandas(filename,nodata=None):
 
     dat = get_data(filename)
     geo = get_geo(filename)
 
     return array_to_pandas(dat,geo,0,'ne')
 
-def to_ascii(filename,output,nodata=None,sep=None):
+def shp_to_pandas(shp):
 
-    df = to_pandas(filename,nodata=nodata)
+    shp  = shapefile.Reader(shp)
+    dat  = shp.records()
+    lst  = shp.fields[1:]
+    cols = [item[0] for item in lst]
+    df   = pd.DataFrame(dat,columns=cols,dtype=np.float)
 
-    if sep != None:
-        df.to_csv(output,index=False,sep=sep)
-    else:
-        df.to_csv(output,index=False)
-    
+    return df
+
+def assign_val(df2=None,df2_x='lon',df2_y='lat',df1=None,df1_x='x',df1_y='y',label=None):
+
+    df2 = df2.copy()
+    df1 = df1.copy()
+
+    df2[label] = np.nan
+    for i in range(df2[df2_x].size):
+        dis = haversine_array(np.array(df1[df1_y],dtype='float32'),
+                              np.array(df1[df1_x],dtype='float32'),
+                              np.float32(df2.loc[i,df2_y]),
+                              np.float32(df2.loc[i,df2_x]))
+        idx = np.argmin(dis)
+        df2.loc[i,label] = df1.loc[idx,label]
+
+    return df2
 
 def plot(filename,width=5,height=5,dpi=72,title=None):
 
@@ -251,13 +274,3 @@ def save(filename,out,tile='no',width=5,height=5,dpi=72):
         plt.imsave(out, dat, dpi=dpi)
     else:
         plt.savefig(out, bbox_inches='tight')
-
-def shp2pandas(shp):
-
-    shp  = shapefile.Reader(shp)
-    dat  = shp.records()
-    lst  = shp.fields[1:]
-    cols = [item[0] for item in lst]
-    df   = pd.DataFrame(dat,columns=cols,dtype=np.float)
-
-    return df
