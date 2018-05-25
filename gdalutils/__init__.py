@@ -11,3 +11,4 @@ from .core import raster_to_pandas
 from .core import shp_to_pandas
 from .core import assign_val
 from .extras import haversine
+from .extras import shapefile
