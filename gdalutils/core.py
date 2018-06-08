@@ -228,10 +228,11 @@ def shp_to_pandas(shp):
 
     return df
 
-def assign_val(df2=None,df2_x='lon',df2_y='lat',df1=None,df1_x='x',df1_y='y',label=None):
+def assign_val(df2=None,df2_x='lon',df2_y='lat',df1=None,df1_x='x',df1_y='y',label=None,copy=True):
 
-    df2 = df2.copy()
-    df1 = df1.copy()
+    if copy:
+        df2 = df2.copy()
+        df1 = df1.copy()
 
     df2[label] = np.nan
     for i in range(df2[df2_x].size):
@@ -242,7 +243,8 @@ def assign_val(df2=None,df2_x='lon',df2_y='lat',df1=None,df1_x='x',df1_y='y',lab
         idx = np.argmin(dis)
         df2.loc[i,label] = df1.loc[idx,label]
 
-    return df2
+    if copy:
+        return df2
 
 def plot(filename,width=5,height=5,dpi=72,title=None):
 
