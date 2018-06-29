@@ -5,10 +5,12 @@
 from sys import exit
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 from osgeo import gdal
 from osgeo import osr
 from gdalutils.extras.haversine import haversine_array
 from gdalutils.extras import shapefile
+from shapely.geometry import Point
 
 def get_dataxy(filename,x,y,nx,ny):
 
@@ -210,6 +212,13 @@ def pandas_to_raster(netf,outf,df,labl,dtype):
     dat    = pandas_to_array(df,geo,nodata)
 
     write_raster(dat,outf,geo,dtype,nodata)
+
+def points_to_geopandas(crs,lon,lat):
+
+    # crs is a dictionary in the form {'init':'epsg:4326'}
+
+    geometry = [Point(xy) for xy in zip(lon, lat)]
+    return gpd.GeoDataFrame(crs=crs, geometry=geometry)
 
 def raster_to_pandas(filename,nodata=None):
 
