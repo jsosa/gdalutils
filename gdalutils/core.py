@@ -11,7 +11,6 @@ import geopandas as gpd
 from osgeo import gdal
 from osgeo import osr
 from gdalutils.extras.haversine import haversine_array
-from gdalutils.extras import shapefile
 from shapely.geometry import Point
 
 
@@ -191,28 +190,6 @@ def pandas_to_array(df, geo, nodata):
     return newarray
 
 
-def pandas_to_shp(outf, proj, df, labl):
-
-    # Save df in shapefile
-    w = shapefile.Writer(shapefile.POINT)
-    w.field('x')
-    w.field('y')
-    w.field(labl)
-
-    # Writing .shp resulting file
-    for x, y, value in zip(df['x'], df['y'], df[labl]):
-        w.point(x, y)
-        w.record(x, y, value)
-    w.save("%s.shp" % outf)
-
-    # write .prj file
-    prj = open("%s.prj" % outf, "w")
-    srs = osr.SpatialReference()
-    srs.ImportFromProj4(proj)
-    prj.write(srs.ExportToWkt())
-    prj.close()
-
-
 def pandas_to_raster(netf, outf, df, dtype):
 
     nodata = -9999
@@ -236,17 +213,6 @@ def raster_to_pandas(filename, nodata=None):
     geo = get_geo(filename)
 
     return array_to_pandas(dat, geo, 0, 'ne')
-
-
-def shp_to_pandas(shp):
-
-    shp = shapefile.Reader(shp)
-    dat = shp.records()
-    lst = shp.fields[1:]
-    cols = [item[0] for item in lst]
-    df = pd.DataFrame(dat, columns=cols, dtype=np.float)
-
-    return df
 
 
 def assign_val(df2=None, df2_x='lon', df2_y='lat', df1=None, df1_x='x', df1_y='y', label=None, copy=True):
