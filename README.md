@@ -2,7 +2,7 @@
 
 # gdalutils
 
-`gdautils` is a small library to handle GDAL-based raster files
+`gdalutils` is a small library to handle GDAL-based raster files
 
 ### Installation
 
