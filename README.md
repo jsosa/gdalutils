@@ -13,6 +13,7 @@ Just run this line after installing all dependencies
 ### Dependencies
 
 - [Geopandas](http://geopandas.org/)
+- [Cython](https://cython.org/)
 - [GDAL](https://www.gdal.org/)
 
 ### Usage
